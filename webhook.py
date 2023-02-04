@@ -6,7 +6,8 @@ webhook_token = "BjQ2Vh9rjwJR9XoM3nit51Vr3VJqjpS2E3Whrr5ZLGyYZrUYXDKwMx5VUiUN9-e
 
 
 def createWebHook(fileURL):
-    directory = os.fsencode("images")
+    imgDir = os.fsencode("images")
+    docsDir = os.fsencode("docs")
 
     webhook = DiscordWebhook(url=f"https://discord.com/api/webhooks/{webhook_id}/{webhook_token}")    
 
@@ -14,7 +15,7 @@ def createWebHook(fileURL):
     embeds = [embed]
 
     i=0
-    for file in os.listdir(directory):
+    for file in os.listdir(imgDir):
         embeds.append(DiscordEmbed(url=fileURL))
         filename = os.fsdecode(file)
         with open(f"images/{filename}", "rb") as f:
@@ -25,9 +26,15 @@ def createWebHook(fileURL):
         if i==2:
             break
         i+=1
-
+    
+    for file in os.listdir(docsDir):
+        filename = os.fsdecode(file)
+        with open(f"docs/{filename}", "rb") as f:
+            webhook.add_file(file=f.read(), filename=f'{filename}')
+    
     response = webhook.execute(remove_files=True)
     return response
+
 
 
 
