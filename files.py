@@ -10,7 +10,10 @@ def createJPG(filename):
     month = "01"
     url = f"http://pcampus.edu.np/wp-content/uploads/{year}/{month}/{filename}"
     response = requests.get(url)
-    images = pdf2image.convert_from_bytes(response.content)
+    with open(f"docs/{filename}", 'wb') as pdf:
+        pdf.write(response.content)
+
+    images = pdf2image.convert_from_path(f"docs/{filename}")
     for i in range(len(images)):   
          images[i].save('images/'+'page'+ str(i) +'.jpg', 'JPEG')
 
