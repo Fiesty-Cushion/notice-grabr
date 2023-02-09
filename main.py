@@ -1,40 +1,59 @@
 import requests
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from bs4 import BeautifulSoup
-import json
 from files import *
 from webhook import *
 
 
 year = datetime.now().strftime('%Y')
 month = datetime.now().strftime('%m')
-month = "01"
-
-url = f"https://pcampus.edu.np/wp-content/uploads/{year}/{month}/?C=M;O=A"
+yesterday =  str(date.today() - timedelta(days=1)).split('-')[-1]
+url = f"https://pcampus.edu.np/{year}/{month}/{yesterday}/"
 
 def scraper():
     page = requests.get(url)
     soup = BeautifulSoup(page.content,'html.parser')
-    with open('files.txt', 'w', encoding="utf-8") as f:
-        for a in soup.find_all('a', href = True):    
-            if '.' in a['href']:
-                file = a['href']        
-                f.write(file)
-                f.write("\n")
+    body = soup.find('body', class_="error404 group-blog")
+    titles = []
+    files_link = []
 
-def checkForUpdate():
-    file1 = open("files.txt", 'r')
-    file2 = open("sent.txt", 'r')
-    """
-    Check both files for any change
-    and trigger webhook if any change
-    """
+    if(body != None):
+        return
+    
+    if(body == None):
+        titles_html = soup.find_all('h2', class_="entry-title")
+        for title in titles_html:
+            title = title.find('a').get_text()
+            titles.append(title)
 
+        files_html = soup.find_all('div', class_="entry-content")
+        for file in files_html:
+            link = file.find('a').get('href')
+            files_link.append(link)
 
-    file1.close()
-    file2.close()
+    return(titles, files_link)
 
-#scraper()
-#createPDF("Namelist2-1.pdf")
-#createWebHook("https://pcampus.edu.np/wp-content/uploads/2023/01/Namelist2-1.pdf")
-checkForUpdate()
+args = scraper()
+if(args != None):
+    titles = args[0]
+    links = args[1]
+
+    if (links != None):
+        for index, link in enumerate(links):
+            filename = link.split("/")[-1]
+            if (filename.__contains__(".pdf")):
+                create_files(link, filename)
+                status = embedWebHook(link, titles[index])
+                if (status != 200):
+                    continue
+            elif (filename.__contains__(".jpg") or filename.__contains__(".jpeg")):
+                status = imgWebhook(url, titles[index])
+                if (status != 200):
+                    continue
+            else:
+                status = textWebhook(url, titles[index])
+                if (status != 200):
+                    continue
+            del_files()
+
+    
