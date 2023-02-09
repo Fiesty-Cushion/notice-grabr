@@ -1,17 +1,16 @@
 from discord_webhook import DiscordWebhook, DiscordEmbed
 import os
 
-webhook_id = "1070949976269656104"
-webhook_token = "BjQ2Vh9rjwJR9XoM3nit51Vr3VJqjpS2E3Whrr5ZLGyYZrUYXDKwMx5VUiUN9-eiC5dA"
+webhookURL = "https://discord.com/api/webhooks/1073169205874130964/mZo7xQCtF3KXlsCZJPQPb362DEAVKHaveWD876-cgG7iakJbTt-Y8uMQSDqmdY0qkTVT"
 
-
-def createWebHook(fileURL):
+def embedWebHook(fileURL, title):
     imgDir = os.fsencode("images")
     docsDir = os.fsencode("docs")
 
-    webhook = DiscordWebhook(url=f"https://discord.com/api/webhooks/{webhook_id}/{webhook_token}")    
+    webhook = DiscordWebhook(url=webhookURL)    
 
-    embed = DiscordEmbed(title='Notice!',description='@everyone', color='0x992d22', url=fileURL)
+    embed = DiscordEmbed(title="Notice!" ,description=f"**{title}**", color='0xDC143C', url=fileURL)
+    embed.set_footer(text="Check official website for more details.", icon_url="https://i.imgur.com/0HOdGQE.jpg")
     embeds = [embed]
 
     i=0
@@ -21,9 +20,10 @@ def createWebHook(fileURL):
         with open(f"images/{filename}", "rb") as f:
             print(filename)
             webhook.add_file(file=f.read(), filename=f'{filename}')
+        f.close()
         embeds[i].set_image(url=f'attachment://{filename}')
         webhook.add_embed(embeds[i])
-        if i==2:
+        if i==8:
             break
         i+=1
     
@@ -31,10 +31,29 @@ def createWebHook(fileURL):
         filename = os.fsdecode(file)
         with open(f"docs/{filename}", "rb") as f:
             webhook.add_file(file=f.read(), filename=f'{filename}')
+        f.close()
     
     response = webhook.execute(remove_files=True)
-    return response
+    return(response.status_code)
 
 
 
+def imgWebhook(fileURL, title):
+    webhook = DiscordWebhook(url=f"https://discord.com/api/webhooks/{webhook_id}/{webhook_token}")
+    embed = DiscordEmbed(title="Notice!" ,description=f"**{title}**", color='0xDC143C', url=fileURL)
+    embed.set_footer(text="Check official website for more details.", icon_url="https://i.imgur.com/0HOdGQE.jpg")
+    embed.set_image(url=fileURL)
+    webhook.add_embed(embed)
 
+    response = webhook.execute()
+    return response.status_code
+
+def textWebhook(fileURL, title):    
+    webhook = DiscordWebhook(url=f"https://discord.com/api/webhooks/{webhook_id}/{webhook_token}")
+    embed = DiscordEmbed(title="Notice!" ,description=f"**{title}**", color='0xDC143C', url=fileURL)
+    embed.set_footer(text="Check official website for more details.", icon_url="https://i.imgur.com/0HOdGQE.jpg")
+    webhook.add_embed(embed)
+
+    response = webhook.execute()
+    return response.status_code
+    
